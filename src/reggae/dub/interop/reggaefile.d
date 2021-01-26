@@ -31,6 +31,15 @@ private void createReggaefile(T)(auto ref T output,
 
     file.writeln(q{
         import reggae;
-        mixin build!(dubDefaultTarget!(), dubTestTarget!());
+        alias buildTarget = dubDefaultTarget!(); // dub build
+        alias testTarget = dubTestTarget!();     // dub test (=> ut[.exe])
+        version (Windows) {
+            // Windows: extra `ut` convenience alias for `ut.exe`
+            alias utTarget = phony!("ut", "", testTarget);
+            mixin build!(buildTarget, optional!testTarget,
+                         optional!utTarget);
+        } else {
+            mixin build!(buildTarget, optional!testTarget);
+        }
     }.replaceFirst(regex(`^        `), ""));
 }
